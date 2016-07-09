@@ -3,9 +3,13 @@ from Xlib import X, XK
 from Xlib.ext import record
 from Xlib.protocol import rq
 import os
+import subprocess
+from translate import Translator
 
+translator= Translator(to_lang="ru")
 disp = None
 lastkey_isctrl = False
+
 
 def handler(reply):
     """ This function is called when a xlib event is fired """
@@ -25,11 +29,10 @@ def handler(reply):
             elif keysym == XK.XK_q and lastkey_isctrl: 
                 lastkey_isctrl = False
                 text = os.popen("xsel -o").read()
-                print(text)
+                sendmessage('translate en->ru',translator.translate(text))
             else:
-                lastkey_isctrl = False
-                
-
+                lastkey_isctrl = False                
+        
 # get current display
 disp = Display()
 root = disp.screen().root
@@ -55,3 +58,7 @@ disp.record_free_context(ctx)
 while 1:
     # Infinite wait, doesn't do anything as no events are grabbed
     event = root.display.next_event()
+
+def sendmessage(title,message):
+    subprocess.Popen(['notify-send','-i', 'info','-t','0.1',title, message])
+    return
